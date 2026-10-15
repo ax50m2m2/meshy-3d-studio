@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d12">
+  <title>Meshy 3D Studio · AI 建模工作台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="#"><span class="brand-mark">M</span><span>meshy<span class="brand-light"> studio</span><small>AI 3D WORKSPACE</small></span></a>
+      <div class="side-label">工作区</div>
+      <button class="nav-item active" type="button"><span>◈</span> 创作工作台</button>
+      <button class="nav-item" type="button" id="historyNav"><span>◷</span> 本地任务记录</button>
+      <div class="sidebar-bottom"><div class="api-status"><span class="status-dot" id="healthDot"></span><div><b id="healthText">正在检查服务</b><small>API 连接状态</small></div></div><p>模型生成需要有效的 Meshy API Key。密钥只保存在服务器环境变量中。</p></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><div><span class="eyebrow">AI CREATION SUITE</span><h1>把想法，变成 3D。</h1><p>用文字或图片生成三维资产，在浏览器中预览并下载。</p></div><div class="top-pill"><span class="pulse"></span> 创作空间 <b>01</b></div></header>
+      <div class="workspace">
+        <section class="panel creation-panel">
+          <div class="panel-heading"><div><span class="step">01</span><h2>创建模型</h2></div><span class="tiny-tag">MESHY API</span></div>
+          <div class="mode-tabs"><button class="mode active" data-mode="text" type="button">✳ 文字生成 3D</button><button class="mode" data-mode="image" type="button">▧ 图片生成 3D</button></div>
+          <form id="createForm">
+            <label for="prompt">描述你的模型 <span>尽量具体</span></label>
+            <textarea id="prompt" rows="5" maxlength="600" placeholder="例如：一座中国古代烽火台，灰色砖石结构，木制瞭望平台，游戏道具，干净的三维资产……" required></textarea>
+            <div class="examples"><button type="button" class="example">低多边形小屋</button><button type="button" class="example">中国古代战船</button><button type="button" class="example">科幻机器人</button></div>
+            <div id="imageField" class="hidden"><label for="imageUrl">参考图片 URL <span>需为可公开访问的图片链接</span></label><input id="imageUrl" type="url" placeholder="https://example.com/reference.png"></div>
+            <div class="field-grid"><div><label for="style">艺术风格</label><select id="style"><option value="realistic">写实</option><option value="sculpture">雕塑</option><option value="pbr">PBR 材质</option><option value="voxel">体素</option><option value=" low-poly">低多边形</option><option value=" cartoon">卡通</option></select></div><div><label for="quality">生成阶段</label><select id="quality"><option value="preview">预览模型（较快）</option><option value="refine">精修模型（更慢）</option></select></div></div>
+            <button class="primary-btn" id="submitBtn" type="submit"><span>✦</span> 开始生成模型 <span class="arrow">↗</span></button>
+            <p class="form-note">生成可能消耗 API 积分或费用。提交前请确认你的 Meshy 账户额度。</p>
+          </form>
+          <div class="divider"></div>
+          <div class="panel-heading compact"><div><span class="step">02</span><h2>任务进度</h2></div><button id="clearBtn" class="text-btn" type="button">清除记录</button></div>
+          <div id="taskList" class="task-list"><div class="empty-mini"><span>◷</span><p>尚无生成任务</p><small>提交一次生成请求后，进度会显示在这里。</small></div></div>
+        </section>
+        <section class="panel preview-panel">
+          <div class="preview-head"><div><span class="step">03</span><h2>三维预览</h2></div><div class="preview-actions"><button id="resetView" class="icon-btn" title="重置视角" type="button">⟳</button><button id="downloadBtn" class="download-btn" disabled type="button">↓ 下载模型</button></div></div>
+          <div class="viewer-wrap" id="viewerWrap"><div class="grid-glow"></div><div class="viewer-placeholder" id="placeholder"><div class="cube-icon"><svg viewBox="0 0 80 80" fill="none"><path d="M40 8 68 24v32L40 72 12 56V24L40 8Z" stroke="currentColor" stroke-width="1.5"/><path d="m12 24 28 17 28-17M40 41v31M26 16l28 16v16L26 32V16Z" stroke="currentColor" stroke-width="1.2" opacity=".6"/></svg></div><h3>你的模型将在这里呈现</h3><p>提交文字或图片描述，生成完成后即可旋转查看。</p><div class="viewer-hints"><span>↻ 旋转</span><span>⌕ 缩放</span><span>⇧ 拖拽</span></div></div><model-viewer id="modelViewer" class="hidden" camera-controls auto-rotate shadow-intensity="1" exposure="1" environment-image="neutral" alt="生成的 3D 模型"></model-viewer><div id="viewerStatus" class="viewer-status hidden"></div></div>
+          <div class="model-meta"><div><span>当前模型</span><b id="modelName">未生成</b></div><div><span>文件格式</span><b id="modelFormat">GLB / GLTF</b></div><div><span>任务状态</span><b id="modelState">等待开始</b></div></div>
+          <div class="tip-card"><span class="tip-icon">✧</span><div><b>提示：让描述更具体</b><p>写清楚主体、材质、风格、比例和用途，通常更容易得到符合预期的模型。复杂模型可以先生成预览，再继续精修。</p></div></div>
+          <div class="notice" id="notice" role="status" aria-live="polite">工作台已就绪。请先配置服务端 API Key，再开始生成。</div>
+        </section>
+      </div>
+      <footer>Meshy 3D Studio <span>·</span> 独立开发者工作台 <span>·</span> 生成服务由 Meshy API 提供</footer>
+    </main>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
